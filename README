@@ -1,0 +1,30 @@
+A (not-finished) PyPI server implementation using Tornado. 
+
+This is being put here now so I don't lose it. I have serious doubts about my
+laptop at time of writing. :) 
+
+I'll update this doc when this is actually usable. Promise. 
+
+
+It requires Redis, redis-py, and Python 2.6.x (I'll test w/ 2.7 going forward as
+well). 
+
+I'm after a few different things with this project: 
+
+1.  I want something that's blindingly easy to deploy. I don't want to muck with
+    WSGI, CGI, FCGI, whatever. I want to write code and run it, and have something
+    that works. Having used Tornado for numerous other projects (some 'web scale'),
+    I can tell you it works :) 
+
+2.  I want some enterprise-y features like proxy requests and package caching.
+    Those will come later, but I didn't want to start this using a huge
+    multi-headed framework because I want to get to them sooner than later :)
+
+3.  I want to understand distutils, Python package distribution, and all that
+    stuff better.
+
+At time of writing (Nov. 24, 2010, 2PM EST), this project supports simple
+Apache-style directory listings, and the setup.py 'register' and 'upload'
+commands. It's all incomplete though, because the data model needs to be
+properly implemented, so you'll see 200 replies and nothing happening. I'm
+testing with distutils and setuptools/easy_install in Python 2.6.
