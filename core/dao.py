@@ -3,6 +3,15 @@ import redis
 db = redis.Redis()
 
 class PyPIData(object):
+    def find_pkg(self, pkg):
+    """
+    The idea here is to define a relatively efficient method of 
+    finding packages in a case-insensitive way. This will probably
+    return the proper package name as stored in redis. 
+
+    """
+    pass
+
     def get_pkg_meta(self, pkg):
     """
     Return all metadata for a package. Don't forget to 
