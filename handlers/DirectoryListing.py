@@ -68,22 +68,19 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
     def checkpath(self, requested_path):
         """
         Check that the requested path lives under one of the configured 
-        PackageDirs
+        PackageDirs, that it exists, and that it's not a symlink.
 
         """
         logging.debug("Checking path: %s", requested_path)
         valid = [os.path.normpath(requested_path).startswith(i) for i in self.application.settings['PackageDirs']]
-        if True in valid:
-            logging.debug("Path is valid: %s", valid)
-            # also check existence
-            if os.path.exists(requested_path):
-                logging.debug("Path exists - returning True")
-                return True
-            else:
-                raise tornado.web.HTTPError(404)
-        else:
+        logging.debug("Valid? %s", valid)
+
+        if True not in valid or os.path.islink(requested_path):
             raise tornado.web.HTTPError(403)
-                
+        elif not os.path.exists(requested_path):
+            raise tornado.web.HTTPError(404)
+        else:
+            return True
 
     def return_file(self, requested_file):
         """
