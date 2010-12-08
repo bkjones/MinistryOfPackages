@@ -1,6 +1,9 @@
 import tornado.web
 import logging
 import os
+from core import dao
+
+db = dao.db
 
 __author__ = 'jonesy'
 class SetupPyHandler(tornado.web.RequestHandler):

@@ -1,14 +1,51 @@
 A (not-finished) PyPI server implementation using Tornado. 
+It requires Redis, redis-py, and it's tested with Python 2.7
 
 This is being put here now so I don't lose it. I have serious doubts about my
 laptop at time of writing. :) 
 
-I'll update this doc when this is actually usable. Promise. 
+What Works Now?
+===================
+
+Right now, MinistryOfPackages is usable for two of the planned features: 
+
+1. It has DirectoryListing support, and that's completely generic. It's meant 
+    to be used by command line tools, but the browser presentation works -- it 
+    just doesn't have all the fancy icons :)
+
+2. You can do, for example, 'python setup.py sdist upload -r http://localhost:8080/dist', 
+    and then leverage the directory listing capability to go to http://localhost/packages 
+    and browse to confirm your package made it into the repository. 
+
+These features need a little polish, but they generally work.
+
+What's Up Next?
+====================
+
+1. Support for the distutils 'register' command is in place but isn't ready for 
+    prime-time. It'll be ready shortly. 
+
+2. The pieces are all in place for the browser interface, but there's no front end
+    implementation yet. Since 'register' and 'upload' commands are the only way to 
+    populate the data to be used by this feature, it makes sense to get those stable 
+    first (well, ok, I'll probably do some prototypes to break up the monotony, but...)
 
 
-It requires Redis, redis-py, and Python 2.6.x (I'll test w/ 2.7 going forward as
-well). 
+What's After That?
+====================
 
+1. Proxying requests to PyPI for easy_install, so MinistryOfPackages can be your primary 
+    index server for everything.
+
+2. Package caching. 
+
+3. PyPI Mirroring (this can technically be done now, but it's not a good solution as it stands). 
+
+Feature requests, patches, and whatever else are welcome. 
+
+--------------------------
+Why are you doing this?
+--------------------------
 I'm after a few different things with this project: 
 
 1.  I want something that's blindingly easy to deploy. I don't want to muck with

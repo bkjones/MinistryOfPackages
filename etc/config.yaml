@@ -1,0 +1,39 @@
+%YAML 1.2
+---
+HTTPServer:
+    daemonize: True
+    no_keep_alive: True
+    ports: [8080,8081, 8082] 
+    xheaders: True
+    debug: True
+    logdir: 'logs'
+    logformat: '%(levelname)s   %(asctime)s %(name)s PID(%(process)d) %(message)s'
+
+Application:
+    PackageDirs:
+    # RELATIVE URLs that live in your application directory. Symlink them :) 
+    # My plan is to have a pattern like packages/<pkg>/<version>/<filetype>/<file>
+        - packages
+    static_path: static
+    template_path: templates
+
+# Changing the layout here. This will allow for 
+# easy expansion into more complex configs for 
+# RequestHandlers. 
+RequestHandlers:
+ - handlers.SetupPyHandler:
+    url: "/dist"
+ - handlers.SetupPyHandler:
+    url: "/pypi"
+ - handlers.PyPIHandler:
+    url: "/index/(?P<package>.*)/(?P<version>.*)"
+ - handlers.DirectoryListingHandler:
+    url: "/(?P<directory>.+)"
+ - handlers.PyPIHandler:
+    url: "/"
+
+#RequestHandlers:
+# - ["/dist", handlers.SetupPyHandler]
+# - ["/pypi/(?P<package>.*)/(?P<version>.*)", handlers.PyPIHandler]
+# - ["/(?P<directory>.*)", handlers.DirectoryListingHandler]
+# - ["/simple/(?P<package>.*/(?P<version>.*)", handlers.EasyInstallHandler]
