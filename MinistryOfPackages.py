@@ -62,30 +62,9 @@ class Application(tornado.web.Application):
                 handler_class.whitelist = handler_config.get('whitelist', [])
                 url = handler_config['url']
                 handlers.append((url, handler_class))
-                logging.debug("Handlers collection: %s", handlers)
 
-#        for handler in config['RequestHandlers']:
-#            logging.debug(handler)
-#            module, classname = handler[1].rsplit('.', 1)
-#            print "MODULE: %s" % module
+        logging.debug("Handlers collection: %s", handlers)
 
-            # Import the module, getting the file from the __dict__
-#            logging.debug('Importing: %s' % module)
-#            imported_module = importlib.import_module(module)
-
-            # Get the handle to the class
-#            handle = getattr(imported_module, classname)
-
-            # if there's a populated whitelist, attach it to the RequestHandler.
-#            if handler[2]:
-#                handle.whitelist = handler[2]
-
-            # Append our handle to the stack
-#            logging.debug('Appending handler for "%s": %s' % (handler[0],
-#                                                              module))
-#            handlers.append((handler[0], handle))
-
-#        print "HANDLERS: %s" % handlers
 
         # We only pass on config from the Application section of our config
         settings = config['Application']
@@ -292,35 +271,3 @@ if __name__ == "__main__":
 
     main(config)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#def main():
-#    tornado.options.parse_command_line()
-#    application = tornado.web.Application([
-#        (r"/dist", SetupPyHandler),
-#        (r"/pypi/(?P<package>.*)/(?P<version>.*)", PyPIHandler),
-#        (r"/(?P<directory>.*)", DirectoryListingHandler),
-#        (r"/simple/(?P<package>.*/(?P<version>.*)", EasyInstallHandler)
-#    ])
-#    http_server = tornado.httpserver.HTTPServer(application)
-#    http_server.bind(8888)
-#    http_server.start(2)
-##    http_server.listen(options.port)
-#    tornado.ioloop.IOLoop.instance().start()
-
-
-#if __name__ == "__main__":
-    #cProfile.run('main()', 'profile_stats')
-#    main()

@@ -37,14 +37,14 @@ class SetupPyHandler(tornado.web.RequestHandler):
         else:
             args = self.request.arguments
 
+        logging.debug("ARGS: %s", args)
+
         if 'filename' in args.keys():
             try:
                 self.upload(self.request, args)
                 return True
             except Exception as out:
                 raise tornado.web.HTTPError(500, 'Problem with upload() --> %s' % out)
-
-        logging.debug("ARGS: %s", args)
 
         # store all the args we got in the main lookup hash for the pkg.
         db.hmset('pkg:%s' % args['name'], args)
@@ -62,26 +62,36 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
 
     def upload(self, req, args):
-        tarball_dir = '/tmp/tarballs'
-        rpm_dir = '/tmp/rpmz'
 
+        # TODO: this line is going to cause brokenness someday. Planning to clean 
+        # it up and let users define different base paths for different file types 
+        # or maybe other arbitrary conditions. 
+        base_pkgdir = os.path.join(self.application.settings['base_path'], self.application.settings['PackageDirs'][0])
+
+        pkgname = args['name']
+        vers = args['version']
+        ftype = args['filetype']
         fname = args['filename']
+        fcontent = args['filecontent']
         if fname.startswith('"') and fname.endswith('"'):
             fname = fname[1:-1]
             logging.debug("FILENAME: %s", fname)
 
-        if args['filetype'] == 'sdist':
-            # it's a tarball
-            f = open(os.path.join(tarball_dir, fname), 'w')
-        elif args['filetype'] == 'rpm':
-            f = open(os.path.join(rpm_dir, fname), 'w')
-        else:
-            raise tornado.web.HTTPError(401, "Unsupported file type")
+        filepath = os.path.join(base_pkgdir, pkgname, vers, ftype, fname)
+        try:
+            with open(filepath, 'w') as f:
+                f.write(fcontent)
+        except IOError as ioerr:
+            logging.debug("Error writing uploaded file: %s - %s", ioerr.errno, ioerr.strerror)
+            try:
+                os.makedirs(os.path.dirname(filepath))
+                logging.debug("Path created: %s", os.path.dirname(filepath))
+                with open(filepath, 'w') as f:
+                    f.write(fcontent)
+            except OSError as out:
+                logging.debug("Error creating path %s (%s - %s)", filepath, out.errno, out.strerror)
+                raise tornado.web.HTTPError(500)
 
-        f.write(args['filecontent'])
-        f.close()
-        logging.debug("UPLOAD: args -> %s", args)
-        logging.debug("UPLOAD: files -> %s", req.files)
 
 
     def parse_args_from_body(self):
@@ -91,6 +101,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
         self.request.files. We have to do it manually.
 
         """
+        logging.critical(self.request)
         try:
             ctfields = self.request.headers['Content-Type'].split(';')
             logging.debug("ctfields: %s" , ctfields)
@@ -105,7 +116,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
             for i in chunks:
                 logging.debug("Current chunk: %s", i)
                 if 'filename' in i:
-                    hdrs, file_contents = i.split('\n\n')
+                    hdrs, file_contents = i.split('\n\n', 1)
                     logging.debug("HEADERS RAW: %s", hdrs)
                     hdr_dict = dict([(h.split('=')) for h in hdrs.split(';') if '=' in h])
                     logging.debug("HEADER DICT: %s", hdr_dict)
