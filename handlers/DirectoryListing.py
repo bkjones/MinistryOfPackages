@@ -5,6 +5,22 @@ import logging
 import time
 
 class DirectoryListingHandler(tornado.web.RequestHandler):
+    """
+    This handler wouldn't be hard to plug into any old Tornado app. Here's what you need: 
+
+    The application needs to have a settings['PackageDirs'] setting which is a list of 
+    paths relative to your app directory (e.g. ['tmp/tarballs', 'tmp/source']. Incoming 
+    requests will be checked to insure the paths exist AND that they live under one of 
+    these directories. For testing I've been symlinking other dirs under my app directory
+    and that's worked fine. 
+
+    If the incoming request is for a file, mimetypes is used to make a guess at filetype. 
+    In the future I'll try to import the python-magic module or similar & fall back to 
+    mimetypes. Patches welcome :) 
+
+    """
+
+
     def get(self, directory):
         """
         If the requested path isn't under one of the directories in
