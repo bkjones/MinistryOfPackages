@@ -1,0 +1,30 @@
+<html>
+   <head>
+      <title>{{ title }}</title>
+   </head>
+   <body>
+   <h3> {{ title }} </h3>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Last Modified</th>
+        </tr>
+
+        {% if pardir is not None %}
+        <tr>
+                {% for parent_dir, parent_stat in pardir %}
+                    <td><a href='/{{ parent_dir }}'>Parent directory</a></td>
+                    <td>{{ parent_stat }}</td>
+                {% end %}
+        </tr>
+        {% end %}
+
+       {% for name, stat in entries %}
+        <tr>
+            <td><a href='/{{ directory }}/{{ name }}'>{{ name }}</a></td>
+            <td>{{ stat }}</td>
+        </tr>
+        {% end %}
+    </table>
+   </body>
+</html>
