@@ -29,8 +29,8 @@ generally work.
 What's Up Next?
 ====================
 
-1. Support for the distutils 'register' command is in place but isn't ready
-   for prime-time. It'll be ready shortly. 
+1. Completion of a data model (using Redis) to support
+   more of the CLI and browser UI features (like 'register').
 
 2. Fleshing out a proper browser interface. 
 
