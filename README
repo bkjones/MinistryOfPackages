@@ -1,5 +1,7 @@
 A (not-finished) PyPI server implementation using Tornado. 
-It requires Redis, redis-py, and it's tested with Python 2.7
+It requires the Tornado package, and it's tested with pip and Python 2.7
+It is not tested with easy_install, and easy_install support is not a
+near-term goal or priority (Please use pip)
 
 What Works Now?
 ===================

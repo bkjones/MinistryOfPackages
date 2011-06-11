@@ -3,7 +3,10 @@ import logging
 import os
 from core import dao
 
-db = dao.db
+# This needs to be uncommented and the 'return True' 
+# later on removed in order to enable the data model and 
+# redis support. 
+#db = dao.db
 
 __author__ = 'jonesy'
 class SetupPyHandler(tornado.web.RequestHandler):
