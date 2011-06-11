@@ -34,33 +34,38 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
         """
 
-        logging.debug("ARGUMENTS: %s", self.request.arguments)
+        #logging.debug("ARGUMENTS: %s", self.request.arguments)
         if not self.request.arguments:
             args = self.parse_args_from_body()
         else:
             args = self.request.arguments
 
-        logging.debug("ARGS: %s", args)
+        #logging.debug("ARGS: %s", args)
 
         if 'filename' in args.keys():
             try:
                 self.upload(self.request, args)
+                # this return should be removed if an option to store data 
+                # and/or use the web UI is enabled.
                 return True
             except Exception as out:
                 raise tornado.web.HTTPError(500, 'Problem with upload() --> %s' % out)
 
         # store all the args we got in the main lookup hash for the pkg.
+        logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
         db.hmset('pkg:%s' % args['name'], args)
 
         # For each k,v in args, make a set
         for arg, val in args.items():
             if arg == 'classifiers':
                 for classifier in val:
-                    logging.debug("Adding classifier '%s' for pkg %s", classifier, args['name'])
+                    #logging.debug("Adding classifier '%s' for pkg %s", classifier, args['name'])
+                    logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )", arg, classifier, args['name'])
                     db.sadd(':'.join((arg, classifier)), args['name'])
             else:
                 if arg not in self.nolist_keys:
-                    logging.debug("Adding %s for pkg %s", 'metadata:%s' % arg, args['name'])
+                    #logging.debug("Adding %s for pkg %s", 'metadata:%s' % arg, args['name'])
+                    logging.debug("REDIS: db.sadd('metadata:%s', %s)" % arg, val)
                     db.sadd('metadata:%s' % arg, val)
 
 
@@ -76,11 +81,12 @@ class SetupPyHandler(tornado.web.RequestHandler):
         ftype = args['filetype']
         fname = args['filename']
         fcontent = args['filecontent']
+
         if fname.startswith('"') and fname.endswith('"'):
             fname = fname[1:-1]
             logging.debug("FILENAME: %s", fname)
 
-        filepath = os.path.join(base_pkgdir, pkgname, vers, ftype, fname)
+        filepath = os.path.join(base_pkgdir, pkgname, fname)
         try:
             with open(filepath, 'w') as f:
                 f.write(fcontent)
@@ -95,8 +101,6 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 logging.debug("Error creating path %s (%s - %s)", filepath, out.errno, out.strerror)
                 raise tornado.web.HTTPError(500)
 
-
-
     def parse_args_from_body(self):
         """
         current distutils versions don't use proper line terminators for HTTP headers,
@@ -104,25 +108,25 @@ class SetupPyHandler(tornado.web.RequestHandler):
         self.request.files. We have to do it manually.
 
         """
-        logging.critical(self.request)
+        #logging.critical(self.request)
         try:
             ctfields = self.request.headers['Content-Type'].split(';')
-            logging.debug("ctfields: %s" , ctfields)
+            #logging.debug("ctfields: %s" , ctfields)
 
             boundary = [field.split('=')[1] for field in ctfields if 'boundary=' in field][0]
-            logging.debug("boundary: %s", boundary)
+            #logging.debug("boundary: %s", boundary)
 
             chunks = self.request.body.split(boundary)
-            logging.debug("chunks: %s", chunks)
+            #logging.debug("chunks: %s", chunks)
 
             args = {}
             for i in chunks:
-                logging.debug("Current chunk: %s", i)
+                #logging.debug("Current chunk: %s", i)
                 if 'filename' in i:
                     hdrs, file_contents = i.split('\n\n', 1)
-                    logging.debug("HEADERS RAW: %s", hdrs)
+                    #logging.debug("HEADERS RAW: %s", hdrs)
                     hdr_dict = dict([(h.split('=')) for h in hdrs.split(';') if '=' in h])
-                    logging.debug("HEADER DICT: %s", hdr_dict)
+                    #logging.debug("HEADER DICT: %s", hdr_dict)
                     if 'filename' in hdr_dict.keys():
                         file_name = hdr_dict['filename']
                         args['filename'] = file_name
@@ -131,16 +135,16 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
                 if 'form-data' in i:
                     argbit = i.split(';')[1]
-                    logging.debug("Argbit: %s", argbit)
+                    #logging.debug("Argbit: %s", argbit)
 
                     prename, preval = argbit.split('\n\n')
-                    logging.debug("prename, preval == %s, %s", prename, preval)
+                    #logging.debug("prename, preval == %s, %s", prename, preval)
 
                     k = prename.split('=')[1]
                     if k.startswith('"') and k.endswith('"'):
                         k = k[1:-1]
                     v = preval.rstrip('\n--')
-                    logging.debug("K, V = %s, %s", k, v)
+                    #logging.debug("K, V = %s, %s", k, v)
 
                     if k == 'classifiers':
                         if k in args:
@@ -152,7 +156,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
                     else:
                         args[k] = v
 
-            logging.debug("ARGS: %s", args)
+            #logging.debug("ARGS: %s", args)
             return args
         except Exception as out:
             logging.error("Whoops --> %s (%s)", type(out), out)

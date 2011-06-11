@@ -20,7 +20,6 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
     """
 
-
     def get(self, directory):
         """
         If the requested path isn't under one of the directories in
@@ -28,9 +27,11 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
         """
 
+
         # First things first: is the requested path under one of our 
         # configured PackageDirs, and does it actually exist? 
         valid_request = self.checkpath(directory)
+        directory = os.path.normpath(directory)
 
 
         if valid_request:

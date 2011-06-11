@@ -1,13 +1,10 @@
 A (not-finished) PyPI server implementation using Tornado. 
 It requires Redis, redis-py, and it's tested with Python 2.7
 
-This is being put here now so I don't lose it. I have serious doubts about my
-laptop at time of writing. :) 
-
 What Works Now?
 ===================
 
-Right now, MinistryOfPackages is usable for two of the planned features: 
+Right now, MinistryOfPackages is usable for simple use cases: 
 
 1. It has DirectoryListing support, and that's completely generic. It's meant 
     to be used by command line tools, but the browser presentation works -- it 
@@ -17,7 +14,10 @@ Right now, MinistryOfPackages is usable for two of the planned features:
     and then leverage the directory listing capability to go to http://localhost/packages 
     and browse to confirm your package made it into the repository. 
 
-These features need a little polish, but they generally work.
+3. You can 'pip install -i http://localhost:8080 <pkg>' on the package you
+    uploaded in point 2 above.
+
+These features still need more testing and a little polish, but they generally work.
 
 What's Up Next?
 ====================
@@ -25,11 +25,7 @@ What's Up Next?
 1. Support for the distutils 'register' command is in place but isn't ready for 
     prime-time. It'll be ready shortly. 
 
-2. The pieces are all in place for the browser interface, but there's no front end
-    implementation yet. Since 'register' and 'upload' commands are the only way to 
-    populate the data to be used by this feature, it makes sense to get those stable 
-    first (well, ok, I'll probably do some prototypes to break up the monotony, but...)
-
+2. Fleshing out a proper browser interface. 
 
 What's After That?
 ====================
@@ -41,7 +37,7 @@ What's After That?
 
 3. PyPI Mirroring (this can technically be done now, but it's not a good solution as it stands). 
 
-Feature requests, patches, and whatever else are welcome. 
+Feature requests, new ideas, and pull requests are welcome. 
 
 --------------------------
 Why are you doing this?
@@ -60,8 +56,3 @@ I'm after a few different things with this project:
 3.  I want to understand distutils, Python package distribution, and all that
     stuff better.
 
-At time of writing (Nov. 24, 2010, 2PM EST), this project supports simple
-Apache-style directory listings, and the setup.py 'register' and 'upload'
-commands. It's all incomplete though, because the data model needs to be
-properly implemented, so you'll see 200 replies and nothing happening. I'm
-testing with distutils and setuptools/easy_install in Python 2.6.
