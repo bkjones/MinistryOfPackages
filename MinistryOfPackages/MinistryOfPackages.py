@@ -31,10 +31,7 @@ import tornado.options
 import tornado.web
 
 # OUR OWN MODULES
-from daemonize import daemonize
-#from handlers import SetupPyHandler
-#from handlers import PyPIHandler
-#from handlers import DirectoryListingHandler
+from core.daemonize import daemonize
 
 __appname__ = 'MinistryOfPackages'
 __author__ = 'Brian K. Jones' 
