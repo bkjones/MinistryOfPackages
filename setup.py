@@ -4,6 +4,7 @@ from distutils.core import setup
 
 setup(name='MinistryOfPackages',
       version='0.9.1',
+      requires=['pyyaml', 'tornado']
       description='A minimal PyPI implementation meant for use behind a firewall.',
       author='Brian K. Jones',
       author_email='bkjones@gmail.com',
