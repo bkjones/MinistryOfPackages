@@ -1,7 +1,7 @@
 import tornado.web
 import logging
 import os
-from core import dao
+from MinistryOfPackages.core import dao
 
 # This needs to be uncommented and the 'return True' 
 # later on removed in order to enable the data model and 

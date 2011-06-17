@@ -32,7 +32,7 @@ import tornado.options
 import tornado.web
 
 # OUR OWN MODULES
-from core.daemonize import daemonize
+from MinistryOfPackages.core.daemonize import daemonize
 
 __appname__ = 'MinistryOfPackages'
 __author__ = 'Brian K. Jones' 

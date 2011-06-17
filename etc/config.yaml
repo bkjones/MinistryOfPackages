@@ -12,7 +12,6 @@ HTTPServer:
 Application:
     PackageDirs:
     # RELATIVE URLs that live in your application directory. Symlink them :) 
-    # My plan is to have a pattern like packages/<pkg>/<version>/<filetype>/<file>
         - packages
     static_path: static
     template_path: templates
@@ -21,19 +20,14 @@ Application:
 # easy expansion into more complex configs for 
 # RequestHandlers. 
 RequestHandlers:
- - handlers.SetupPyHandler:
+ - MinistryOfPackages.handlers.SetupPyHandler:
     url: "/dist"
- - handlers.SetupPyHandler:
+ - MinistryOfPackages.handlers.SetupPyHandler:
     url: "/pypi"
- - handlers.PyPIHandler:
+ - MinistryOfPackages.handlers.PyPIHandler:
     url: "/index/(?P<package>.*)/(?P<version>.*)"
- - handlers.DirectoryListingHandler:
+ - MinistryOfPackages.handlers.DirectoryListingHandler:
     url: "/(?P<directory>.+)"
- - handlers.PyPIHandler:
+ - MinistryOfPackages.handlers.PyPIHandler:
     url: "/"
 
-#RequestHandlers:
-# - ["/dist", handlers.SetupPyHandler]
-# - ["/pypi/(?P<package>.*)/(?P<version>.*)", handlers.PyPIHandler]
-# - ["/(?P<directory>.*)", handlers.DirectoryListingHandler]
-# - ["/simple/(?P<package>.*/(?P<version>.*)", handlers.EasyInstallHandler]
