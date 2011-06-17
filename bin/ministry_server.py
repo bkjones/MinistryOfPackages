@@ -1,4 +1,4 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -13,7 +13,12 @@
 # under the License.
 
 # PYTHON BUILTIN MODULES
-import importlib
+try:
+    import importlib
+except ImportError:
+    # Python < 2.7
+    importlib = None
+
 import logging
 import multiprocessing
 import optparse
@@ -55,7 +60,10 @@ class Application(tornado.web.Application):
             for handler, handler_config in dispatch_def.items():
                 logging.debug(handler)
                 modulename, classname = handler.rsplit('.', 1)
-                module = importlib.import_module(modulename)
+                if importlib:
+                    module = importlib.import_module(modulename)
+                else:
+                    module = __import__(modulename, fromlist=classname)
                 handler_class = getattr(module, classname)
                 handler_class.whitelist = handler_config.get('whitelist', [])
                 url = handler_config['url']
