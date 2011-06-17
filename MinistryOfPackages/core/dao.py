@@ -1,6 +1,6 @@
-import redis
+#import redis
 
-db = redis.Redis()
+#db = redis.Redis()
 
 class PyPIData(object):
     def find_pkg(self, pkg):
