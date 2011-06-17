@@ -6,6 +6,8 @@ A simple Python package index server implementation, meant for internal use
 it's tested with pip and Python 2.7 It is not tested with easy_install, and
 easy_install support is not a near-term goal or priority (Please use pip)
 
+It requires pyyaml and tornado-1.2.x.
+
 What Works Now?
 ===================
 
@@ -37,7 +39,7 @@ What's Up Next?
 What's After That?
 ====================
 
-1. Proxying requests to PyPI for easy_install, so MinistryOfPackages can be
+1. Proxying requests to PyPI for pip, so MinistryOfPackages can be
    your primary index server for everything.
 
 2. Package caching. 
