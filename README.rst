@@ -1,12 +1,13 @@
 What is MinistryOfPackages?
 =============================
 
-A simple Python package index server implementation, meant for internal use
-(at least for now). It requires Tornado (http://www.tornadoweb.org), and
-it's tested with pip and Python 2.7 It is not tested with easy_install, and
-easy_install support is not a near-term goal or priority (Please use pip)
+A simple Python package index server implementation, meant for internal use (at
+least for now). The expectation is that it runs behind a firewall, and also
+most likely a reverse proxy. It requires PyYAML and Tornado
+(http://www.tornadoweb.org), and it's tested with pip and Python 2.7 It is not
+tested with easy_install, and easy_install support is not a near-term goal or
+priority (Please use pip)
 
-It requires pyyaml and tornado-1.2.x.
 
 What Works Now?
 ===================
