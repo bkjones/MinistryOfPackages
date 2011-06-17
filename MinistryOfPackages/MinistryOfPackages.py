@@ -1,4 +1,4 @@
-#!/usr/local/bin/python
+#!/usr/bin/env python2.7
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -24,7 +24,8 @@ import time
 import yaml
 
 # THIRD PARTY MODULES
-import redis
+# Redis will be implemented later & hopefully made optional
+# import redis
 import tornado.httpserver
 import tornado.ioloop
 import tornado.options

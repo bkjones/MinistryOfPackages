@@ -1,0 +1,92 @@
+#!/bin/bash
+#
+# Startup script for MinistryOfPackages daemon.
+#
+# chkconfig: - 85 15
+# description: MinistryOfPackages is a minimalistic PyPI implementation meant for deployment behind a firewall (and reverse proxy).
+# processname: MinistryOfPackages
+# pidfile: /var/run/MinistryOfPackages.pid
+
+# Source function library.
+. /etc/rc.d/init.d/functions
+
+
+server=${MINISTRY-/opt/MinistryOfPackages/bin/MinistryOfPackages.py}
+prog=MinistryOfPackages
+pidfile=${PIDFILE-/var/run/MinistryOfPackages.pid}
+lockfile=${LOCKFILE-/var/lock/subsys/MinistryOfPackages}
+RETVAL=0
+USER=99
+CONFIG='/opt/MinistryOfPackages/etc/config.yaml'
+
+# override any of the defaults above...
+if [ -f /etc/sysconfig/MinistryOfPackages]; then
+        . /etc/sysconfig/MinistryOfPackages
+fi
+
+OPTIONS="-c ${CONFIG} -u ${USER} -p ${pidfile}"
+
+start() {
+        echo -n $"Starting $prog: "
+        daemon $server $OPTIONS
+        RETVAL=$?
+        echo
+        [ $RETVAL = 0 ] && touch ${lockfile}
+        return $RETVAL
+}
+
+stop() {
+	echo -n $"Stopping $prog: "
+	killproc $server
+	RETVAL=$?
+	echo
+	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+}
+reload() {
+    echo -n $"Reloading $prog: "
+    if ! $server $OPTIONS  -t >&/dev/null; then
+        RETVAL=$?
+        echo $"reload failed"
+        failure $"reloading $server failed"
+    else
+        killproc $server -HUP
+        RETVAL=$?
+    fi
+    echo
+}
+
+# See how we were called.
+case "$1" in
+  start)
+	start
+	;;
+  stop)
+	stop
+	;;
+  status)
+        status $prog
+	RETVAL=$?
+	;;
+  restart)
+	stop
+	start
+	;;
+  condrestart)
+	if [ -f ${pidfile} ] ; then
+		stop
+		start
+	fi
+	;;
+  reload)
+        reload
+	;;
+  graceful|help|configtest|fullstatus)
+	$server $@
+	RETVAL=$?
+	;;
+  *)
+	echo $"Usage: $prog {start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
+	exit 1
+esac
+
+exit $RETVAL
