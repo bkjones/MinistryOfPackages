@@ -11,7 +11,7 @@
 . /etc/rc.d/init.d/functions
 
 
-server=${MINISTRY-/opt/MinistryOfPackages/bin/MinistryOfPackages.py}
+server=${MINISTRY-/opt/MinistryOfPackages/bin/ministry_server.py}
 prog=MinistryOfPackages
 pidfile=${PIDFILE-/var/run/MinistryOfPackages.pid}
 lockfile=${LOCKFILE-/var/lock/subsys/MinistryOfPackages}
