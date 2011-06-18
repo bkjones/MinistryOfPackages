@@ -11,10 +11,10 @@ HTTPServer:
 
 Application:
     PackageDirs:
-    # RELATIVE URLs that live in your application directory. Symlink them :) 
+    # Path relative to the main app directory, (by default, 'main app directory' == /opt/MinistryOfPackages)
         - packages
-    static_path: static
-    template_path: templates
+    static_path: __base_path__/static
+    template_path: __base_path__/templates
 
 # Changing the layout here. This will allow for 
 # easy expansion into more complex configs for 

@@ -23,6 +23,7 @@ import logging
 import multiprocessing
 import optparse
 import os
+from os.path import dirname, abspath, realpath
 import signal
 import sys
 import time
@@ -78,8 +79,8 @@ class Application(tornado.web.Application):
         # Set the app version from the version setting in this file
         settings['version'] = __version__
 
-        # Don't rely on relative paths but use absolute paths for things
-        settings['base_path'] = os.path.dirname(os.path.realpath(__file__))
+        # The base directory for the main application. By default, should be /opt/MinistryOfPackages/
+        settings['base_path'] = realpath(dirname(dirname(realpath(__file__))))
 
         # If we have a static_path
         if 'static_path' in settings:

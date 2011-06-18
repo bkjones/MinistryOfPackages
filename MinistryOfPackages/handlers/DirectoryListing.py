@@ -27,44 +27,36 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
         """
 
-
         # First things first: is the requested path under one of our 
         # configured PackageDirs, and does it actually exist? 
         valid_request = self.checkpath(directory)
-        directory = os.path.normpath(directory)
-
-
+        req = self.get_fullpath(directory)
         if valid_request:
             # At this point, if the path didn't exist or wasn't under PackageDirs, we would've 
             # already returned an HTTPError from checkpath.
-            if not os.path.isdir(directory):
+            if not os.path.isdir(req):
                 # it's a file. 
-                self.return_file(directory)
+                self.return_file(req)
             else:
                 # it's a directory. Try to provide a basic directory listing.
-                root_dirs = [os.path.normpath(d) for d in self.application.settings['PackageDirs']]
-                logging.debug("PackageDirs: %s", root_dirs)
 
-                # Get a directory listing
-                allentries = os.listdir(directory)
-                logging.debug("ALL ENTRIES IN %s: %s", directory, allentries)
-
-                # Get the stat info for each thing in the listing.
-                dlist = [(x, os.lstat(os.path.normpath(os.path.join(directory,x)))) for x in allentries]
+                # List of full paths to each configured PackageDir, used to see if we need a 
+                # 'parent directory' link in the browser output.
+                root_dirs = [self.get_fullpath(d) for d in self.application.settings['PackageDirs']]
+                allentries = os.listdir(req)
+                dlist = [(x, os.lstat(os.path.normpath(os.path.join(req, x)))) for x in allentries]
                 pardir = None
 
                 # if we're not requesting a base root_dir, there's a parent directory link. 
-                if os.path.normpath(directory) not in root_dirs:
-                    parent_directory = os.path.normpath(os.path.join(directory, '..'))
+                if os.path.normpath(req) not in root_dirs:
+                    parent_directory = os.path.normpath(os.path.join(req, '..'))
                     parent_dir_stat = time.asctime(time.localtime(os.stat(parent_directory).st_mtime))
                     pardir = [(parent_directory, parent_dir_stat)]
 
                 # filtering statinfo so you just have (name, mtime) for each directory entry.
                 output_entries = [(x, time.asctime(time.localtime(y.st_mtime))) for x,y in dlist]
-                logging.debug("OUTPUT ENTRIES: %s", output_entries)
-                logging.debug("DIRECTORY WE'RE LISTING: %s", directory)
-                page_title = "Listing of directory '%s'" % directory 
-                self.render("dlist.html", title=page_title, entries=output_entries, directory=directory, pardir=pardir)
+                page_title = "Listing of directory '%s'" % req
+                self.render("dlist.html", title=page_title, entries=output_entries, directory=req, pardir=pardir)
 
     def checkpath(self, requested_path):
         """
@@ -72,16 +64,25 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
         PackageDirs, that it exists, and that it's not a symlink.
 
         """
-        logging.debug("Checking path: %s", requested_path)
         valid = [os.path.normpath(requested_path).startswith(i) for i in self.application.settings['PackageDirs']]
-        logging.debug("Valid? %s", valid)
+        fullpath = self.get_fullpath(requested_path)
+        logging.debug("Full path on disk for request: %s", fullpath)
 
-        if True not in valid or os.path.islink(requested_path):
+        if not any(valid):
+            logging.error("No matching PackageDirs. Requested %s, PackageDirs = %s", requested_path, self.application.settings['PackageDirs'])
             raise tornado.web.HTTPError(403)
-        elif not os.path.exists(requested_path):
+        elif not os.path.exists(fullpath):
+            logging.error("NO SUCH PATH: %s", fullpath)
             raise tornado.web.HTTPError(404)
+        elif os.path.islink(fullpath):
+            logging.error("Requested path is a symlink: %s", fullpath)
+            raise tornado.web.HTTPError
         else:
             return True
+
+    def get_fullpath(self, req):
+        fullpath = os.path.join(self.application.settings['base_path'], req)
+        return fullpath
 
     def return_file(self, requested_file):
         """
