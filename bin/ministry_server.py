@@ -159,7 +159,10 @@ def do_logging(config, options):
                           'info': logging.INFO,
                           'fatal': logging.FATAL}
         # Pass in our logging config
-        logging.basicConfig(format=config['format'], level=logging_levels[config['level']])
+        logging.basicConfig(format=config['format'],
+                            level=logging_levels[config['level']],
+                            filename=os.path.join(config['directory'],
+                                                  config['filename']))
         logging.info('Log level set to %s' % config['level'])
 
         # If we have supported handler
