@@ -49,9 +49,6 @@ __version__ = '0.5.3'
 # for tracking tornado processes
 children = []
 
-# daemonization causes realpath(__file__) to return '/', so we get the real
-# one here before we daemonize.
-application_base = realpath(dirname(dirname(realpath(__file__))))
 
 class Application(tornado.web.Application):
 
@@ -279,12 +276,13 @@ def main(config):
     signal.signal(signal.SIGTERM, signal_handler)
 
 if __name__ == "__main__":
+    # daemonization causes realpath(__file__) to return '/', so we get the real
+    # one here before we daemonize.
+    application_base = realpath(dirname(dirname(realpath(__file__))))
     options = do_options()
     config = do_config(options)
     if config.has_key("Logging"):
         do_logging(config["Logging"], options)
-    logging.getLogger()
-    logging.basicConfig(level=logging.DEBUG)
     if not options.foreground:
         #logdir = os.path.join(os.path.abspath(os.path.curdir), config['HTTPServer']['logdir'])
         daemonize(pidfile=options.pidfile, user=int(options.user), stderr='/dev/null', stdout = '/dev/null')
