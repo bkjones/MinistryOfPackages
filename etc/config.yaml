@@ -9,6 +9,17 @@ HTTPServer:
     logdir: 'logs'
     logformat: '%(levelname)s   %(asctime)s %(name)s PID(%(process)d) %(message)s'
 
+Logging:
+    directory: 'logs'
+    filename: 'MinistryOfPackages.log'
+    format: '%(levelname)s   %(asctime)s %(name)s PID(%(process)d) %(message)s'
+    # Valid values: debug, info, warning, error, critical
+    level: debug
+    #handler: syslog
+    #syslog:
+    #    address: '/dev/log'
+    #    facility: local6
+
 Application:
     PackageDirs:
     # Path relative to the main app directory, (by default, 'main app directory' == /opt/MinistryOfPackages)
