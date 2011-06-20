@@ -10,7 +10,7 @@ HTTPServer:
     logformat: '%(levelname)s   %(asctime)s %(name)s PID(%(process)d) %(message)s'
 
 Logging:
-    directory: 'logs'
+    directory: '/var/log/MinistryOfPackages'
     filename: 'MinistryOfPackages.log'
     format: '%(levelname)s   %(asctime)s %(name)s PID(%(process)d) %(message)s'
     # Valid values: debug, info, warning, error, critical
