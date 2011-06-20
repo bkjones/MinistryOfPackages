@@ -26,6 +26,12 @@ Right now, MinistryOfPackages is usable for simple use cases:
 3. You can 'pip install -i http://localhost:8080 <pkg>' on the package you
    uploaded in point 2 above.
 
+4. If you want to check internal first and fall back to pypi.python.org, there's no global pip config file (yet), so you need to 
+   export two environment variables, either in your personal shell init, or in the global shell initialization files: 
+
+   PIP_INDEX_URL=http://your.index.internal/packages
+   PIP_EXTRA_INDEX_URL=http://pypi.python.org/simple
+
 These features still need more testing and a little polish, but they
 generally work.
 
