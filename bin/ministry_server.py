@@ -153,6 +153,11 @@ def do_logging(config, options):
         #    logging.getLogger().setLevel(logging.DEBUG)
         return
     else:
+        logging_levels = {'debug': logging.DEBUG,
+                          'error': logging.ERROR,
+                          'critical': logging.CRITICAL,
+                          'info': logging.INFO,
+                          'fatal': logging.FATAL}
         # Pass in our logging config
         logging.basicConfig(format=config['format'], level=logging_levels[config['level']])
         logging.info('Log level set to %s' % config['level'])
