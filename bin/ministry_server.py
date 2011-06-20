@@ -48,6 +48,11 @@ __version__ = '0.5.3'
 
 # for tracking tornado processes
 children = []
+
+# daemonization causes realpath(__file__) to return '/', so we get the real
+# one here before we daemonize.
+application_base = realpath(dirname(dirname(realpath(__file__))))
+
 class Application(tornado.web.Application):
 
     def __init__(self, config):
@@ -80,7 +85,7 @@ class Application(tornado.web.Application):
         settings['version'] = __version__
 
         # The base directory for the main application. By default, should be /opt/MinistryOfPackages/
-        settings['base_path'] = realpath(dirname(dirname(realpath(__file__))))
+        settings['base_path'] = application_base
 
         # If we have a static_path
         if 'static_path' in settings:
@@ -264,7 +269,7 @@ def signal_handler(sig, frame):
 
 def main(config):
     for port in config['HTTPServer']['ports']:
-        logging.info('Spawning on port %i' % ( port))
+        logging.info('Spawning on port %i', port)
         proc = multiprocessing.Process(target=runapp, args=(port, config))
         proc.start()
         children.append(proc)
