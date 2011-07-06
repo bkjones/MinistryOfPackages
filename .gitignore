@@ -1,3 +1,7 @@
 *.swp
 *.pyc
 .idea
+MANIFEST
+build
+dist
+packages
