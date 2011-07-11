@@ -43,7 +43,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
         else:
             args = self.request.arguments
 
-        #logging.debug("ARGS: %s", args)
+        logging.debug("ARGS INSIDE POST: %s", args)
 
         if 'filename' in args.keys():
             try:
@@ -105,31 +105,31 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(500)
 
     def parse_args_from_body(self):
-        """
-        current distutils versions don't use proper line terminators for HTTP headers,
+        """current distutils versions don't use proper line terminators for HTTP headers,
         so we can't lean on Tornado's nicely-populated self.request.arguments, and
         self.request.files. We have to do it manually.
 
         """
+        logging.debug("Inside parse_args_from_body")
         #logging.critical(self.request)
         try:
             ctfields = self.request.headers['Content-Type'].split(';')
-            #logging.debug("ctfields: %s" , ctfields)
+            logging.debug("ctfields: %s" , ctfields)
 
             boundary = [field.split('=')[1] for field in ctfields if 'boundary=' in field][0]
-            #logging.debug("boundary: %s", boundary)
+            logging.debug("boundary: %s", boundary)
 
             chunks = self.request.body.split(boundary)
-            #logging.debug("chunks: %s", chunks)
+            logging.debug("chunks: %s", chunks)
 
             args = {}
             for i in chunks:
-                #logging.debug("Current chunk: %s", i)
+                logging.debug("Current chunk: %s", i)
                 if 'filename' in i:
                     hdrs, file_contents = i.split('\n\n', 1)
-                    #logging.debug("HEADERS RAW: %s", hdrs)
+                    logging.debug("HEADERS RAW: %s", hdrs)
                     hdr_dict = dict([(h.split('=')) for h in hdrs.split(';') if '=' in h])
-                    #logging.debug("HEADER DICT: %s", hdr_dict)
+                    logging.debug("HEADER DICT: %s", hdr_dict)
                     if 'filename' in hdr_dict.keys():
                         file_name = hdr_dict['filename']
                         args['filename'] = file_name
@@ -137,17 +137,17 @@ class SetupPyHandler(tornado.web.RequestHandler):
                         continue
 
                 if 'form-data' in i:
-                    argbit = i.split(';')[1]
-                    #logging.debug("Argbit: %s", argbit)
+                    argbit = i.split(';', 1)[1]
+                    logging.debug("Argbit: %s", argbit)
 
-                    prename, preval = argbit.split('\n\n')
-                    #logging.debug("prename, preval == %s, %s", prename, preval)
+                    prename, preval = argbit.split('\n\n', 1)
+                    logging.debug("prename, preval == %s, %s", prename, preval)
 
                     k = prename.split('=')[1]
                     if k.startswith('"') and k.endswith('"'):
                         k = k[1:-1]
                     v = preval.rstrip('\n--')
-                    #logging.debug("K, V = %s, %s", k, v)
+                    logging.debug("K, V = %s, %s", k, v)
 
                     if k == 'classifiers':
                         if k in args:
@@ -159,7 +159,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
                     else:
                         args[k] = v
 
-            #logging.debug("ARGS: %s", args)
+            logging.debug("ARGS: %s", args)
             return args
         except Exception as out:
             logging.error("Whoops --> %s (%s)", type(out), out)
