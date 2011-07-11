@@ -23,7 +23,7 @@ Right now, MinistryOfPackages is usable for simple use cases:
    capability to go to http://localhost/packages and browse to confirm your
    package made it into the repository. 
 
-3. You can 'pip install -i http://localhost:8080 <pkg>' on the package you
+3. You can 'pip install -i http://localhost:8080/packages <pkg>' on the package you
    uploaded in point 2 above.
 
 4. If you want to check internal first and fall back to pypi.python.org, there's no global pip config file (yet), so you need to 
