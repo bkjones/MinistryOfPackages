@@ -55,21 +55,21 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 raise tornado.web.HTTPError(500, 'Problem with upload() --> %s' % out)
 
         # store all the args we got in the main lookup hash for the pkg.
-        logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
-        db.hmset('pkg:%s' % args['name'], args)
+        #logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
+        #db.hmset('pkg:%s' % args['name'], args)
 
         # For each k,v in args, make a set
-        for arg, val in args.items():
-            if arg == 'classifiers':
-                for classifier in val:
-                    #logging.debug("Adding classifier '%s' for pkg %s", classifier, args['name'])
-                    logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )", arg, classifier, args['name'])
-                    db.sadd(':'.join((arg, classifier)), args['name'])
-            else:
-                if arg not in self.nolist_keys:
-                    #logging.debug("Adding %s for pkg %s", 'metadata:%s' % arg, args['name'])
-                    logging.debug("REDIS: db.sadd('metadata:%s', %s)" % arg, val)
-                    db.sadd('metadata:%s' % arg, val)
+        #for arg, val in args.items():
+        #    if arg == 'classifiers':
+        #        for classifier in val:
+        #            #logging.debug("Adding classifier '%s' for pkg %s", classifier, args['name'])
+        #            logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )", arg, classifier, args['name'])
+        #            db.sadd(':'.join((arg, classifier)), args['name'])
+        #    else:
+        #        if arg not in self.nolist_keys:
+        #            #logging.debug("Adding %s for pkg %s", 'metadata:%s' % arg, args['name'])
+        #            logging.debug("REDIS: db.sadd('metadata:%s', %s)" % arg, val)
+        #            db.sadd('metadata:%s' % arg, val)
 
 
     def upload(self, req, args):
@@ -111,7 +111,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
         """
         logging.debug("Inside parse_args_from_body")
-        #logging.critical(self.request)
+        logging.debug(self.request)
         try:
             ctfields = self.request.headers['Content-Type'].split(';')
             logging.debug("ctfields: %s" , ctfields)
