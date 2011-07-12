@@ -1,11 +1,16 @@
 #!/usr/bin/env python
 
 from distutils.core import setup
+import os
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='MinistryOfPackages',
-      version='0.9.1',
+      version='0.9.5',
       requires=['pyyaml', 'tornado'],
       description='A minimal PyPI implementation meant for use behind a firewall.',
+      long_description=read("README.rst"),
       author='Brian K. Jones',
       author_email='bkjones@gmail.com',
       url='http://github.com/bkjones/MinistryOfPackages',

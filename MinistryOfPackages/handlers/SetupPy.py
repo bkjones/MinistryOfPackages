@@ -47,6 +47,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
         if 'filename' in args.keys():
             try:
+                logging.debug("CALLING upload")
                 self.upload(self.request, args)
                 # this return should be removed if an option to store data 
                 # and/or use the web UI is enabled.
@@ -77,6 +78,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
         # TODO: this line is going to cause brokenness someday. Planning to clean 
         # it up and let users define different base paths for different file types 
         # or maybe other arbitrary conditions. 
+        logging.debug("INSIDE upload()")
         base_pkgdir = os.path.join(self.application.settings['base_path'], self.application.settings['PackageDirs'][0])
 
         pkgname = args['name']

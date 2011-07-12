@@ -20,7 +20,7 @@ USER=99
 CONFIG='/opt/MinistryOfPackages/etc/config.yaml'
 
 # override any of the defaults above...
-if [ -f /etc/sysconfig/MinistryOfPackages]; then
+if [ -f /etc/sysconfig/MinistryOfPackages ]; then
         . /etc/sysconfig/MinistryOfPackages
 fi
 
