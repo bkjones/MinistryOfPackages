@@ -10,7 +10,6 @@
 # Source function library.
 . /etc/rc.d/init.d/functions
 
-
 server=${MINISTRY-/opt/MinistryOfPackages/bin/ministry_server.py}
 prog=MinistryOfPackages
 pidfile=${PIDFILE-/var/run/MinistryOfPackages.pid}
@@ -21,27 +20,28 @@ CONFIG='/opt/MinistryOfPackages/etc/config.yaml'
 
 # override any of the defaults above...
 if [ -f /etc/sysconfig/MinistryOfPackages ]; then
-        . /etc/sysconfig/MinistryOfPackages
+    . /etc/sysconfig/MinistryOfPackages
 fi
 
 OPTIONS="-c ${CONFIG} -u ${USER} -p ${pidfile}"
 
 start() {
-        echo -n $"Starting $prog: "
-        daemon $server $OPTIONS
-        RETVAL=$?
-        echo
-        [ $RETVAL = 0 ] && touch ${lockfile}
-        return $RETVAL
+    echo -n $"Starting $prog: "
+    daemon $server $OPTIONS
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && touch ${lockfile}
+    return $RETVAL
 }
 
 stop() {
-	echo -n $"Stopping $prog: "
-	killproc $server
-	RETVAL=$?
-	echo
-	[ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
+    echo -n $"Stopping $prog: "
+    killproc $server
+    RETVAL=$?
+    echo
+    [ $RETVAL = 0 ] && rm -f ${lockfile} ${pidfile}
 }
+
 reload() {
     echo -n $"Reloading $prog: "
     if ! $server $OPTIONS  -t >&/dev/null; then
@@ -58,35 +58,35 @@ reload() {
 # See how we were called.
 case "$1" in
   start)
-	start
-	;;
+    start
+    ;;
   stop)
-	stop
-	;;
+    stop
+    ;;
   status)
-        status $prog
-	RETVAL=$?
-	;;
+    status $prog
+    RETVAL=$?
+    ;;
   restart)
-	stop
-	start
-	;;
+    stop
+    start
+    ;;
   condrestart)
-	if [ -f ${pidfile} ] ; then
-		stop
-		start
-	fi
-	;;
+    if [ -f ${pidfile} ] ; then
+        stop
+        start
+    fi
+    ;;
   reload)
-        reload
-	;;
+    reload
+    ;;
   graceful|help|configtest|fullstatus)
-	$server $@
-	RETVAL=$?
-	;;
+    $server $@
+    RETVAL=$?
+    ;;
   *)
-	echo $"Usage: $prog {start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
-	exit 1
+    echo $"Usage: $prog {start|stop|restart|condrestart|reload|status|fullstatus|graceful|help|configtest}"
+    exit 1
 esac
 
 exit $RETVAL

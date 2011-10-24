@@ -1,27 +1,33 @@
 import tornado.web
 import logging
 import os
-from MinistryOfPackages.core import dao
 
-# This needs to be uncommented and the 'return True' 
-# later on removed in order to enable the data model and 
-# redis support. 
+# This needs to be uncommented and the 'return True'
+# later on removed in order to enable the data model and
+# redis support.
 #db = dao.db
 
 __author__ = 'jonesy'
+
+
 class SetupPyHandler(tornado.web.RequestHandler):
     """
     This should handle the setup.py 'register' and 'upload' sub-commands.
 
     """
-    def initialize(self):
-        self.nolist_keys = ['protocol_version', 'md5_digest', 'long_description', 'summary', ':action']
 
+    def initialize(self):
+        self.nolist_keys = ['protocol_version',
+            'md5_digest',
+            'long_description',
+            'summary',
+            ':action']
 
     def post(self):
         """
-        Incoming requests come from the setup.py 'register' or 'upload' sub-commands.
-        Both pass in package metadata, but one includes a file upload.
+        Incoming requests come from the setup.py 'register' or 'upload'
+        sub-commands. Both pass in package metadata, but one includes a
+        file upload.
 
         Note that current versions of distutils don't properly terminate HTTP
         Content-Disposition headers, and Tornado isn't tolerant of that, see:
@@ -49,37 +55,45 @@ class SetupPyHandler(tornado.web.RequestHandler):
             try:
                 logging.debug("CALLING upload")
                 self.upload(self.request, args)
-                # this return should be removed if an option to store data 
+                # this return should be removed if an option to store data
                 # and/or use the web UI is enabled.
                 return True
             except Exception as out:
-                raise tornado.web.HTTPError(500, 'Problem with upload() --> %s' % out)
-
+                raise tornado.web.HTTPError(500, 'Problem with upload() --> %s'
+                    % out)
+        #
         # store all the args we got in the main lookup hash for the pkg.
         #logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
         #db.hmset('pkg:%s' % args['name'], args)
-
+        #
         # For each k,v in args, make a set
         #for arg, val in args.items():
         #    if arg == 'classifiers':
         #        for classifier in val:
-        #            #logging.debug("Adding classifier '%s' for pkg %s", classifier, args['name'])
-        #            logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )", arg, classifier, args['name'])
+        #            #logging.debug("Adding classifier '%s' for pkg %s",
+        #                classifier,
+        #                args['name'])
+        #            logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )",
+        #                arg,
+        #                classifier,
+        #                args['name'])
         #            db.sadd(':'.join((arg, classifier)), args['name'])
         #    else:
         #        if arg not in self.nolist_keys:
-        #            #logging.debug("Adding %s for pkg %s", 'metadata:%s' % arg, args['name'])
-        #            logging.debug("REDIS: db.sadd('metadata:%s', %s)" % arg, val)
+        #            #logging.debug("Adding %s for pkg %s", 'metadata:%s' %
+        #                 arg,
+        #                 args['name'])
+        #            logging.debug("REDIS: db.sadd('metadata:%s', %s)" %
+        #                 arg,
+        #                 val)
         #            db.sadd('metadata:%s' % arg, val)
-
-
     def upload(self, req, args):
-
-        # TODO: this line is going to cause brokenness someday. Planning to clean 
-        # it up and let users define different base paths for different file types 
-        # or maybe other arbitrary conditions. 
+        # TODO: this line is going to cause brokenness someday. Planning to
+        # clean it up and let users define different base paths for
+        # different file types or maybe other arbitrary conditions.
         logging.debug("INSIDE upload()")
-        base_pkgdir = os.path.join(self.application.settings['base_path'], self.application.settings['PackageDirs'][0])
+        base_pkgdir = os.path.join(self.application.settings['base_path'],
+            self.application.settings['PackageDirs'][0])
 
         pkgname = args['name']
         vers = args['version']
@@ -96,29 +110,37 @@ class SetupPyHandler(tornado.web.RequestHandler):
             with open(filepath, 'w') as f:
                 f.write(fcontent)
         except IOError as ioerr:
-            logging.debug("Error writing uploaded file: %s - %s", ioerr.errno, ioerr.strerror)
+            logging.debug("Error writing uploaded file: %s - %s",
+                ioerr.errno,
+                ioerr.strerror)
             try:
                 os.makedirs(os.path.dirname(filepath))
                 logging.debug("Path created: %s", os.path.dirname(filepath))
                 with open(filepath, 'w') as f:
                     f.write(fcontent)
             except OSError as out:
-                logging.debug("Error creating path %s (%s - %s)", filepath, out.errno, out.strerror)
+                logging.debug("Error creating path %s (%s - %s)",
+                    filepath,
+                    out.errno,
+                    out.strerror)
                 raise tornado.web.HTTPError(500)
 
     def parse_args_from_body(self):
-        """current distutils versions don't use proper line terminators for HTTP headers,
-        so we can't lean on Tornado's nicely-populated self.request.arguments, and
-        self.request.files. We have to do it manually.
+        """
+        current distutils versions don't use proper line terminators for HTTP
+        headers, so we can't lean on Tornado's nicely-populated
+        self.request.arguments, and self.request.files. We have to do it
+        manually.
 
         """
         logging.debug("Inside parse_args_from_body")
         logging.debug(self.request)
         try:
             ctfields = self.request.headers['Content-Type'].split(';')
-            logging.debug("ctfields: %s" , ctfields)
+            logging.debug("ctfields: %s", ctfields)
 
-            boundary = [field.split('=')[1] for field in ctfields if 'boundary=' in field][0]
+            boundary = [field.split('=')[1] for field in ctfields
+                if 'boundary=' in field][0]
             logging.debug("boundary: %s", boundary)
 
             chunks = self.request.body.split(boundary)
@@ -130,7 +152,8 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 if 'filename' in i:
                     hdrs, file_contents = i.split('\n\n', 1)
                     logging.debug("HEADERS RAW: %s", hdrs)
-                    hdr_dict = dict([(h.split('=')) for h in hdrs.split(';') if '=' in h])
+                    hdr_dict = dict([(h.split('=')) for h in hdrs.split(';')
+                        if '=' in h])
                     logging.debug("HEADER DICT: %s", hdr_dict)
                     if 'filename' in hdr_dict.keys():
                         file_name = hdr_dict['filename']
@@ -165,5 +188,3 @@ class SetupPyHandler(tornado.web.RequestHandler):
             return args
         except Exception as out:
             logging.error("Whoops --> %s (%s)", type(out), out)
-
-  

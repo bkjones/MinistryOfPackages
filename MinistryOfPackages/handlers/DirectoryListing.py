@@ -5,6 +5,7 @@ import mimetypes
 import logging
 import time
 
+
 class DirectoryListingHandler(tornado.web.RequestHandler):
     """
     This handler wouldn't be hard to plug into any old Tornado app.
@@ -68,7 +69,7 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
                 # filter statinfo to only (name, mtime) for each dir entry.
                 output_entries = [(x, time.asctime(time.localtime(
-                                                y.st_mtime))) for x,y in dlist]
+                    y.st_mtime))) for x, y in dlist]
                 page_title = "Listing of directory '%s'" % uri_path
                 self.render("dlist.html", title=page_title,
                             entries=output_entries, directory=uri_path,
@@ -76,7 +77,7 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
     def checkpath(self, requested_path):
         """
-        Check that the requested path lives under one of the configured 
+        Check that the requested path lives under one of the configured
         PackageDirs, that it exists, and that it's not a symlink.
 
         """
@@ -103,7 +104,7 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
     def return_file(self, requested_file):
         """
-        The requested path is a file, not a dir.  Make a best effort at 
+        The requested path is a file, not a dir.  Make a best effort at
         figuring out what kind of file it is, and send it along.
 
         """
@@ -121,4 +122,3 @@ class DirectoryListingHandler(tornado.web.RequestHandler):
 
         f = open(requested_file, 'r').read()
         self.write(f)
-

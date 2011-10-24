@@ -1,12 +1,18 @@
 import sys
 import os
-def daemonize (pidfile=None, user=None, stdin='/dev/null', stdout='/dev/null', stderr='/dev/null'):
+
+
+def daemonize(pidfile=None,
+    user=None,
+    stdin='/dev/null',
+    stdout='/dev/null',
+    stderr='/dev/null'):
     if user is None:
         user = os.geteuid()
 
     # Perform first fork.
     try:
-        pid = os.fork( )
+        pid = os.fork()
         if pid > 0:
             sys.exit(0) # Exit first parent.
     except OSError, e:
@@ -20,7 +26,7 @@ def daemonize (pidfile=None, user=None, stdin='/dev/null', stdout='/dev/null', s
     try:
         pid = os.fork()
         if pid > 0:
-            # Write out a pid file 
+            # Write out a pid file
             if pidfile:
                 with open(pidfile, 'w') as pidf:
                     pidf.write(str(pid))
@@ -33,7 +39,6 @@ def daemonize (pidfile=None, user=None, stdin='/dev/null', stdout='/dev/null', s
     for f in sys.stdout, sys.stderr:
         f.flush()
 
-
     si = file(stdin, 'r')
     so = file(stdout, 'a+')
     se = file(stderr, 'a+', 0)
@@ -41,14 +46,13 @@ def daemonize (pidfile=None, user=None, stdin='/dev/null', stdout='/dev/null', s
     os.dup2(so.fileno(), sys.stdout.fileno())
     os.dup2(se.fileno(), sys.stderr.fileno())
 
-
     if user != os.geteuid():
         # You want to run as a different uid.
         if os.geteuid() == 0:
-            # If you're root, fine. 
+            # If you're root, fine.
             os.seteuid(user)
         else:
             # If you're not root, no good.
-            sys.stderr.write("Must be root to run daemon as a user other than yourself.\n")
+            sys.stderr.write("Must be root to run daemon as a",
+                " user other than yourself.\n")
             sys.exit(1)
-

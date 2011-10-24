@@ -27,9 +27,7 @@ Application:
     static_path: __base_path__/static
     template_path: __base_path__/templates
 
-# Changing the layout here. This will allow for 
-# easy expansion into more complex configs for 
-# RequestHandlers. 
+# Changing the layout here. This will allow for easy expansion into more complex configs for RequestHandlers. 
 RequestHandlers:
  - MinistryOfPackages.handlers.SetupPyHandler:
     url: "/dist"
