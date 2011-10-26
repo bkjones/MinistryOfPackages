@@ -23,10 +23,9 @@ import logging
 import multiprocessing
 import optparse
 import os
-from os.path import dirname, abspath, realpath
+from os.path import dirname, realpath
 import signal
 import sys
-import time
 import yaml
 
 # THIRD PARTY MODULES
@@ -41,8 +40,8 @@ import tornado.web
 from MinistryOfPackages.core.daemonize import daemonize
 
 __appname__ = 'MinistryOfPackages'
-__author__ = 'Brian K. Jones' 
-__email__ = 'bkjones@gmail.com' 
+__author__ = 'Brian K. Jones'
+__email__ = 'bkjones@gmail.com'
 __since__ = '2010-11-18'
 __version__ = '0.5.3'
 
@@ -74,14 +73,14 @@ class Application(tornado.web.Application):
 
         logging.debug("Handlers collection: %s", handlers)
 
-
         # We only pass on config from the Application section of our config
         settings = config['Application']
 
         # Set the app version from the version setting in this file
         settings['version'] = __version__
 
-        # The base directory for the main application. By default, should be /opt/MinistryOfPackages/
+        # The base directory for the main application. By default,
+        # should be /opt/MinistryOfPackages/
         settings['base_path'] = application_base
 
         # If we have a static_path
@@ -116,8 +115,9 @@ def runapp(port, config):
 
     # Run it!
     http_server = tornado.httpserver.HTTPServer(app,
-                                                xheaders=config['HTTPServer']['xheaders'],
-                                                no_keep_alive=config['HTTPServer']['no_keep_alive'])
+                      xheaders=config['HTTPServer']['xheaders'],
+                      no_keep_alive=config['HTTPServer']['no_keep_alive'])
+
     http_server.listen(port)
 
     try:
@@ -130,13 +130,14 @@ def runapp(port, config):
         logging.error(out)
         shutdown()
 
-def shutdown():
 
+def shutdown():
     logging.debug('%s: shutting down' % __appname__)
     for child in children:
         try:
             if child.is_alive():
-                logging.debug("%s: Terminating child: %s" % (__appname__, child.name))
+                logging.debug("%s: Terminating child: %s" %
+                              (__appname__, child.name))
                 child.terminate()
         except AssertionError:
             logging.error('%s: Dead child encountered' % __appname__)
@@ -144,11 +145,12 @@ def shutdown():
     logging.debug('%s: shutdown complete' % __appname__)
     sys.exit(0)
 
+
 def do_logging(config, options):
     if options.foreground:
         #logging.basicConfig(format=config['format'],
-        #                    filename=os.path.join(config['directory'], config['filename']),
-        #                    level=logging.DEBUG)
+        #    filename=os.path.join(config['directory'], config['filename']),
+        #    level=logging.DEBUG)
         logging.basicConfig(format=config['format'],
                             level=logging.DEBUG)
         #if config['HTTPServer']['debug']:
@@ -168,7 +170,7 @@ def do_logging(config, options):
         logging.info('Log level set to %s' % config['level'])
 
         # If we have supported handler
-        if config.has_key('handler'):
+        if 'handler' in config.keys():
 
             # If we want to syslog
             if config['handler'] == 'syslog':
@@ -177,11 +179,13 @@ def do_logging(config, options):
                 import logging.handlers as handlers
 
                 # If we didn't type in the facility name
-                if handlers.SysLogHandler.facility_names.has_key(facility):
+                if facility in handlers.SysLogHandler.facility_names.keys():
 
                     # Create the syslog handler
-                    syslog = handlers.SysLogHandler(address=config['syslog']['address'],
-                                                    facility = handlers.SysLogHandler.facility_names[facility])
+                    syslog = handlers.SysLogHandler(
+                        address=config['syslog']['address'],
+                        facility =
+                            handlers.SysLogHandler.facility_names[facility])
 
                     # Get the default logger
                     default_logger = logging.getLogger('')
@@ -195,16 +199,18 @@ def do_logging(config, options):
                             default_logger.removeHandler(handler)
 
                 else:
-                    logging.error('%s: Invalid SysLog facility name specified, syslog logging aborted' % __appname__)
+                    logging.error('%s: Invalid SysLog facility name',
+                        'specified, syslog logging aborted' % __appname__)
 
 
 def do_options():
     """
-    We use optparse for this even though Tornado provides its own optparse-ish mechanism.
-    Tornado's option parsing isn't as flexible or robust. It's more for simple apps. For
-    example, it doesn't to my knowledge let you specify both '-c' and '--config' for the
-    same option, and it doesn't have different actions like 'store_true' or flexible variable
-    assignments like using optparse's 'destination'.
+    We use optparse for this even though Tornado provides its own optparse-ish
+    mechanism. Tornado's option parsing isn't as flexible or robust. It's more
+    for simple apps. For example, it doesn't to my knowledge let you specify
+    both '-c' and '--config' for the same option, and it doesn't have
+    different actions like 'store_true' or flexible variable assignments like
+    using optparse's 'destination'.
 
     """
     usage = "usage: %prog -c <configfile> [options]"
@@ -229,8 +235,8 @@ def do_options():
                         help="Specify path to pidfile.")
 
     parser.add_option("-f", "--foreground",
-                      action="store_true", dest="foreground", default=False,
-                      help="Run interactively in console for debugging purposes")
+        action="store_true", dest="foreground", default=False,
+        help="Run interactively in console for debugging purposes")
 
     # Parse our options and arguments
     options, args = parser.parse_args()
@@ -242,10 +248,12 @@ def do_options():
 
     return options
 
+
 def do_config(options):
     """
-    CLI options are really for specifying how the server daemon should start up & behave.
-    Any info needed by the application proper comes from a YAML config file.
+    CLI options are really for specifying how the server daemon should start up
+    & behave. Any info needed by the application proper comes from a YAML
+    config file.
 
     """
     try:
@@ -253,16 +261,20 @@ def do_config(options):
         config = yaml.load(stream)
         stream.close()
     except IOError as err:
-        sys.stderr.write('Configuration file not found "%s"\n' % options.config)
+        sys.stderr.write('Configuration file not found "%s"\n' %
+            options.config)
         sys.exit(1)
     except yaml.scanner.ScannerError as err:
-        sys.stderr.write('Invalid configuration file "%s":\n%s\n' % (options.config, err))
+        sys.stderr.write('Invalid configuration file "%s":\n%s\n' %
+            (options.config, err))
         sys.exit(1)
     else:
         return config
 
+
 def signal_handler(sig, frame):
     shutdown()
+
 
 def main(config):
     for port in config['HTTPServer']['ports']:
@@ -271,7 +283,8 @@ def main(config):
         proc.start()
         children.append(proc)
 
-    # Handle signals. So if you kill the parent process, the children get cleaned up.
+    # Handle signals. So if you kill the parent process, the children get
+    # cleaned up.
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
@@ -281,11 +294,14 @@ if __name__ == "__main__":
     application_base = realpath(dirname(dirname(realpath(__file__))))
     options = do_options()
     config = do_config(options)
-    if config.has_key("Logging"):
+    if 'Logging' in config.keys():
         do_logging(config["Logging"], options)
     if not options.foreground:
-        #logdir = os.path.join(os.path.abspath(os.path.curdir), config['HTTPServer']['logdir'])
-        daemonize(pidfile=options.pidfile, user=int(options.user), stderr='/dev/null', stdout = '/dev/null')
+        #logdir = os.path.join(os.path.abspath(os.path.curdir),
+        #    config['HTTPServer']['logdir'])
+        daemonize(pidfile=options.pidfile,
+            user=int(options.user),
+            stderr='/dev/null',
+            stdout = '/dev/null')
 
     main(config)
-

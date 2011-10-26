@@ -3,24 +3,27 @@
 from distutils.core import setup
 import os
 
+
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 setup(name='MinistryOfPackages',
       version='0.9.5',
       requires=['pyyaml', 'tornado'],
-      description='A minimal PyPI implementation meant for use behind a firewall.',
+      description='A minimal PyPI implementation meant for use' +
+                   'behind a firewall.',
       long_description=read("README.rst"),
       author='Brian K. Jones',
       author_email='bkjones@gmail.com',
       url='http://github.com/bkjones/MinistryOfPackages',
-      packages=['MinistryOfPackages', 'MinistryOfPackages.core', 'MinistryOfPackages.handlers'],
+      packages=['MinistryOfPackages', 'MinistryOfPackages.core',
+                'MinistryOfPackages.handlers'],
       data_files=[('/opt/MinistryOfPackages/etc', ['etc/config.yaml']),
                   ('/opt/MinistryOfPackages/bin', ['bin/ministry_server.py']),
-                  ('/opt/MinistryOfPackages/templates', ['templates/dlist.html']),
+                  ('/opt/MinistryOfPackages/templates',
+                   ['templates/dlist.html']),
                   ('/var/log/MinistryOfPackages', ['README.rst']),
-                  ('/etc/init.d', ['init/MinistryOfPackages'])
-                  ],
+                  ('/etc/init.d', ['init/MinistryOfPackages'])],
       classifiers=[
           'Development Status :: 3 - Alpha',
           'Environment :: Console',
@@ -35,7 +38,4 @@ setup(name='MinistryOfPackages',
           'Programming Language :: Python :: 2.6',
           'Programming Language :: Python :: 2.7',
           'Programming Language :: Python :: 3.2',
-          'Topic :: System :: Software Distribution',
-          ]
-     )
-
+          'Topic :: System :: Software Distribution'])
