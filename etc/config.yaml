@@ -3,7 +3,7 @@
 HTTPServer:
     daemonize: True
     no_keep_alive: True
-    ports: [8080,8081, 8082] 
+    ports: [8080,8081, 8082]
     xheaders: True
     debug: True
     logdir: 'logs'
@@ -26,10 +26,12 @@ Application:
         - packages
     static_path: __base_path__/static
     template_path: __base_path__/templates
+    db: False
+    gui: False
 
-# Changing the layout here. This will allow for 
-# easy expansion into more complex configs for 
-# RequestHandlers. 
+# Changing the layout here. This will allow for
+# easy expansion into more complex configs for
+# RequestHandlers.
 RequestHandlers:
  - MinistryOfPackages.handlers.SetupPyHandler:
     url: "/dist"

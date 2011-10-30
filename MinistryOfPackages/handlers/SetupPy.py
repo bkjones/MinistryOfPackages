@@ -3,10 +3,6 @@ import logging
 import os
 from MinistryOfPackages.core import dao
 
-# This needs to be uncommented and the 'return True' 
-# later on removed in order to enable the data model and 
-# redis support. 
-#db = dao.db
 
 __author__ = 'jonesy'
 class SetupPyHandler(tornado.web.RequestHandler):
@@ -49,12 +45,15 @@ class SetupPyHandler(tornado.web.RequestHandler):
             try:
                 logging.debug("CALLING upload")
                 self.upload(self.request, args)
-                # this return should be removed if an option to store data 
+                # this return should be removed if an option to store data
                 # and/or use the web UI is enabled.
                 return True
             except Exception as out:
                 raise tornado.web.HTTPError(500, 'Problem with upload() --> %s' % out)
 
+        if self.application.settings['db']:
+            db = dao.db
+            db.store
         # store all the args we got in the main lookup hash for the pkg.
         #logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
         #db.hmset('pkg:%s' % args['name'], args)
@@ -75,9 +74,9 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
     def upload(self, req, args):
 
-        # TODO: this line is going to cause brokenness someday. Planning to clean 
-        # it up and let users define different base paths for different file types 
-        # or maybe other arbitrary conditions. 
+        # TODO: this line is going to cause brokenness someday. Planning to clean
+        # it up and let users define different base paths for different file types
+        # or maybe other arbitrary conditions.
         logging.debug("INSIDE upload()")
         base_pkgdir = os.path.join(self.application.settings['base_path'], self.application.settings['PackageDirs'][0])
 
@@ -166,4 +165,4 @@ class SetupPyHandler(tornado.web.RequestHandler):
         except Exception as out:
             logging.error("Whoops --> %s (%s)", type(out), out)
 
-  
+
