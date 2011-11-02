@@ -1,0 +1,16 @@
+
+Each package has a hash that can be looked up using 'pkg:<pkgname>'. The
+hash contains all of the arguments received in a setup.py 'register' or
+'upload' request. These requests are handled in handlers.SetupPy.py.
+
+For each PyPI 'classifier', there exists a Redis set named
+'classifier:<classifier_name>', which contains the names of all packages with
+that classifier. This should make it easier to filter on classifier in a
+search/browse interface.
+
+For each non-classifier argument that comes in, a Redis set exists or is
+created named 'metadata:<argname>' which contains a list of as yet unidentified
+values. Perhaps the idea was to hold each unique value for that particular
+piece of metadata. So, for example, 'metadata:author' would have a list of all
+known authors of all known packages. I'm not sure this makes one bit of sense,
+I'm just going by what's in the code.
