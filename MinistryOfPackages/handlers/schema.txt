@@ -1,16 +1,75 @@
 
-Each package has a hash that can be looked up using 'pkg:<pkgname>'. The
-hash contains all of the arguments received in a setup.py 'register' or
-'upload' request. These requests are handled in handlers.SetupPy.py.
+Each package has a hash that can be looked up using 'pkg:<pkgname>:<version>',
+or 'pkg:<pkgname>:latest. The hash contains all of the arguments received in a
+setup.py 'register' or 'upload' request. These requests are handled in
+handlers.SetupPy.py.
 
 For each PyPI 'classifier', there exists a Redis set named
 'classifier:<classifier_name>', which contains the names of all packages with
 that classifier. This should make it easier to filter on classifier in a
-search/browse interface.
+search/browse interface. Searching or filtering on multiple classifiers is
+also easy using Redis-native set intersection/union/etc operations.
 
-For each non-classifier argument that comes in, a Redis set exists or is
-created named 'metadata:<argname>' which contains a list of as yet unidentified
-values. Perhaps the idea was to hold each unique value for that particular
-piece of metadata. So, for example, 'metadata:author' would have a list of all
-known authors of all known packages. I'm not sure this makes one bit of sense,
-I'm just going by what's in the code.
+For each non-classifier argument that comes in, the argument is checked against
+a list of argument names that we create or update hashes for. So, if
+'author_email=bkjones@example.com' comes in, we create a set called
+'metadata:author_email:bkjones@example.com', and add the package name to it,
+which facilitates fast and easy searching for a list of packages authored by
+someone with email address 'x'. The same would happen for other package
+metadata attributes that would be useful.
+
+It's not clear that submission date, or any dates, come in along with the
+upload request (at least as part of the POST arguments). If that's true we'll
+have to create an entry in the pkg:<pgkname> hash, and maybe create a
+hash for each day, the keys representing some time interval, and the values
+being a list of package names that were updated, uploaded, or created in that
+interval. We *could* just keep an integer count in there, but there'd be no
+paper trail to alert us to issues. With the date in two places, and the
+package name associated with a time in both places, we can verify and upon
+verification failure, be alerted to potential issues in the application.
+
+For each package, here's a (running, constantly updated) list of things that
+go into Redis:
+
+- pkg:<pkgname>:latest - a hash of the attributes for the latest uploaded version
+- pkg:<pkgname>:<version> - a hash of the attributes for the named version.
+- pkg:<pkgname>:<version>:[sdist, bdist, rpm, etc] - It's now possible to filter
+                by the type of distribution available for a package. Also, the
+                metadata, I think, comes with *one* dist type at a time, so if
+                the 'last call wins', and this attribute is in the metadata,
+                then we only keep track of a single distribution type for a
+                given package. Need to identify other things like this :/
+- pkg:<pkgname>:versions - a set containing all of the version names. Needed?
+- classifier:<classifier> - a set of package names with this <classifier>. Names
+                are removed if the latest upload doesn't have that classifier.
+- metadata:author:<author name> - a set of packages authored by <author name>.
+                TODO: is it possible to put spaces in a set key?
+- metadata:author_email:<email> - a set of packages authored by <email>. Needed?
+- metadata:requires:<pkg> - a set of packages that require <pkg>
+- pkg:all_names - a set of all names of all packages known in the system. Each
+                value in here should have 'pkg:<pkgname>:*' keys. This is here
+                in part to work around the fact that scanning all keys in redis
+                using a glob pattern or similar can get really slow. The names
+                in here should be downcased, and all of the keys in the db
+                should also be downcased, so a value from here will can be
+                appended to 'pkg:' and make a direct match. It's also kind of
+                required because redis (and others too) don't support any kind
+                of case-insensitive searching.
+
+
+IDEAS FOR OTHER DATA:
+
+- We *could* provide sets of package names by VCS management domain, so users
+  can request to see all packages with their search criteria that are hosted on
+  github, or bitbucket, or launchpad (for example, there are prolly more). It'd
+  just be 'vchost:github {['MinistryOfPackages']}'
+
+- How should upload_date be handled? Would it be better to have a set for each
+  day, like 'upload_date:<date> [{pkg1, pkg2, ...}]'. I don't think it'd need
+  to be more granular than that. This would facilitate things like searches for
+  packages updated in the last week, month, etc. It could also help in the
+  event that someone comes up with a scoring system for packages that doesn't
+  totally suck, but let's not get ahead of ourselves.
+
+
+

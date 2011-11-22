@@ -5,7 +5,9 @@ import os
 # This needs to be uncommented and the 'return True'
 # later on removed in order to enable the data model and
 # redis support.
-#db = dao.db
+from MinistryOfPackages.core import dao
+
+db = dao.db
 
 __author__ = 'jonesy'
 
@@ -21,7 +23,15 @@ class SetupPyHandler(tornado.web.RequestHandler):
             'md5_digest',
             'long_description',
             'summary',
-            ':action']
+            ':action',
+            'filecontent',
+            'name',
+            'home_page',
+            'metadata_version',
+            'protcol_version',
+            'filetype',
+            'comment',
+            ]
 
     def post(self):
         """
@@ -43,6 +53,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
         """
 
+        logging.debug("WE'RE INSIDE THE UPDATED POST")
         #logging.debug("ARGUMENTS: %s", self.request.arguments)
         if not self.request.arguments:
             args = self.parse_args_from_body()
@@ -57,36 +68,42 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 self.upload(self.request, args)
                 # this return should be removed if an option to store data
                 # and/or use the web UI is enabled.
-                return True
+                #return True
             except Exception as out:
                 raise tornado.web.HTTPError(500, 'Problem with upload() --> %s'
                     % out)
-        #
+        self.dbstore(args)
+
+    def dbstore(self, args):
+        logging.debug("WE'RE INSIDE DBSTORE")
         # store all the args we got in the main lookup hash for the pkg.
-        #logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
-        #db.hmset('pkg:%s' % args['name'], args)
-        #
+        logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
+        db.hmset('pkg:%s' % args['name'], args)
+
         # For each k,v in args, make a set
-        #for arg, val in args.items():
-        #    if arg == 'classifiers':
-        #        for classifier in val:
-        #            #logging.debug("Adding classifier '%s' for pkg %s",
-        #                classifier,
-        #                args['name'])
-        #            logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )",
-        #                arg,
-        #                classifier,
-        #                args['name'])
-        #            db.sadd(':'.join((arg, classifier)), args['name'])
-        #    else:
-        #        if arg not in self.nolist_keys:
-        #            #logging.debug("Adding %s for pkg %s", 'metadata:%s' %
-        #                 arg,
-        #                 args['name'])
-        #            logging.debug("REDIS: db.sadd('metadata:%s', %s)" %
-        #                 arg,
-        #                 val)
-        #            db.sadd('metadata:%s' % arg, val)
+        for arg, val in args.items():
+            if arg == 'classifiers':
+                for classifier in val:
+                    logging.debug("Adding classifier '%s' for pkg %s",
+                        classifier,
+                        args['name'])
+                    logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )",
+                        arg,
+                        classifier,
+                        args['name'])
+                    db.sadd(':'.join((arg, classifier)), args['name'])
+            else:
+                if arg not in self.nolist_keys:
+                    logging.debug("Adding %s for pkg %s", 'metadata:%s' %
+                         arg,
+                         args['name'])
+                    logging.debug("REDIS: db.sadd('metadata:%s:%s', %s)",
+                                  arg,
+                                  val,
+                                  args['name'])
+                    db.sadd('metadata:%s:%s' % (arg, val), args['name'])
+        return
+
     def upload(self, req, args):
         # TODO: this line is going to cause brokenness someday. Planning to
         # clean it up and let users define different base paths for
@@ -151,10 +168,10 @@ class SetupPyHandler(tornado.web.RequestHandler):
                 logging.debug("Current chunk: %s", i)
                 if 'filename' in i:
                     hdrs, file_contents = i.split('\n\n', 1)
-                    logging.debug("HEADERS RAW: %s", hdrs)
+                    #logging.debug("HEADERS RAW: %s", hdrs)
                     hdr_dict = dict([(h.split('=')) for h in hdrs.split(';')
                         if '=' in h])
-                    logging.debug("HEADER DICT: %s", hdr_dict)
+                    #logging.debug("HEADER DICT: %s", hdr_dict)
                     if 'filename' in hdr_dict.keys():
                         file_name = hdr_dict['filename']
                         args['filename'] = file_name
@@ -163,10 +180,10 @@ class SetupPyHandler(tornado.web.RequestHandler):
 
                 if 'form-data' in i:
                     argbit = i.split(';', 1)[1]
-                    logging.debug("Argbit: %s", argbit)
+                    #logging.debug("Argbit: %s", argbit)
 
                     prename, preval = argbit.split('\n\n', 1)
-                    logging.debug("prename, preval == %s, %s", prename, preval)
+                    #logging.debug("prename, preval == %s, %s", prename, preval)
 
                     k = prename.split('=')[1]
                     if k.startswith('"') and k.endswith('"'):
@@ -184,7 +201,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
                     else:
                         args[k] = v
 
-            logging.debug("ARGS: %s", args)
+            #logging.debug("ARGS: %s", args)
             return args
         except Exception as out:
             logging.error("Whoops --> %s (%s)", type(out), out)

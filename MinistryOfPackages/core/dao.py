@@ -1,49 +1,76 @@
-#import redis
+import redis
 
-#db = redis.Redis()
+db = redis.Redis()
 
+PKG_PREFIX = 'pkg'
+PKG_NAME_INDEX = 'pkg:all_names'
 class PyPIData(object):
 
-    def find_pkg(self, pkg):
+    def find_pkg_key_byname(self, pkg):
         """
-        The idea here is to define a relatively efficient method of
-        finding packages in a case-insensitive way. This will probably
-        return the proper package name as stored in redis.
+        Downcase the 'pkg' input, look up the value in PKG_NAME_INDEX, and
+        if it exists, return the key that maps to the whole package.
+
+        :param string pkg: Name of a package to find.
+        :returns: key that maps to the package data (NOT the pkg data itself).
 
         """
-        pass
+        name = pkg.lower()
+        exists = db.sismember(PKG_NAME_INDEX, name)
+        if exists:
+            pkgkey = ':'.join([PKG_PREFIX, name])
+            return pkgkey
+        else:
+            return None
 
-    def get_pkg_meta(self, pkg):
+    def get_pkg_meta(self, pkg, version='latest'):
         """
-        Return all metadata for a package. Don't forget to
-        make the search case-insensitive.
-
-        """
-        pass
-
-    def get_most_recent_tarball(self, pkg):
-        """
-        Get the name of the most recent tarball for package named 'pkg'.
+        Return all metadata for a package.
 
         """
-        pass
+        pkgkey = self.find_pkg_key_byname(pkg)
+        if pkgkey:
+            pkgkey = ':'.join([pkgkey, version])
+            meta = db.hgetall(pkgkey)
+            return meta
+        else:
+            return None
 
-    def get_pkg_meta_field(self, pkg, field, version=None):
+    def get_distpkg_filename(self, pkg, version='latest'):
         """
-        If version is None, return value for 'field' in latest version.
+        Get the filename (not path) of the distribution package
+        (tarball, zip file, exe, dmg, whatever) at the given version.
 
         """
-        pass
+        #TODO: should have pkg:<pkg>:<version>:[sdist,bdist,rpm, etc] keys.
+        # See the schema.txt file for expansion on this.
+        return self.get_pkg_meta_field(pkg, 'filename', version)
 
-    def get_pkg_download_url(self, pkg, version=None):
+    def get_pkg_meta_field(self, pkg, field, version='latest'):
         """
-        If version is None, get url for most recent version. Otherwise,
-        return the url for the specified version.
+        If version is None, return value for 'field' in latest version, or None
 
         """
-        pass
+        pkgkey = self.find_pkg_key_byname(pkg)
+        if pkgkey:
+            pkgkey = ':'.join([pkgkey, version])
+            val = db.hget(pkgkey, field)
+            if val:
+                return val
+            else:
+                return None
+        else:
+            return None
 
-    def store_pkg_metadata(self, pkg, version):
+    def get_pkg_download_url(self, pkg, version='latest'):
+        """
+        If version is None, get 'download_url' for most recent version.
+        Otherwise, return the url for the specified version.
+
+        """
+        return self.get_pkg_meta_field(pkg, 'dowload_url', version)
+
+    def store_pkg_metadata(self, pkg, version='latest'):
         """
         Store all metadata for package. Should be called in the
         'upload' and 'register' setup.py commands, which both
@@ -52,11 +79,12 @@ class PyPIData(object):
         """
         pass
 
-    def update_pkg_metadata(self, pkg, version=None, **kwargs):
+    def update_pkg_metadata(self, pkg, version, **kwargs):
         """
         Set the metadata fields specified by **kwargs for the record
-        indicated by pkg and version. If version is None, update the
-        most recent version of the package.
+        indicated by pkg and version. To protect against overwriting unintended
+        metadata in this case, version is required, and does NOT default to
+        'latest'.
 
         """
         pass
