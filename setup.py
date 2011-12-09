@@ -9,7 +9,7 @@ def read(fname):
 
 setup(name='MinistryOfPackages',
       version='0.9.5',
-      requires=['pyyaml', 'tornado'],
+      requires=['pyyaml', 'tornado', 'redis'],
       description='A minimal PyPI implementation meant for use' +
                    'behind a firewall.',
       long_description=read("README.rst"),

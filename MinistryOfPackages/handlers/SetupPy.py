@@ -5,9 +5,10 @@ import os
 # This needs to be uncommented and the 'return True'
 # later on removed in order to enable the data model and
 # redis support.
-from MinistryOfPackages.core import dao
+#from MinistryOfPackages.core import dao
+from ..core import dao
 
-db = dao.db
+db = dao.PyPIData()
 
 __author__ = 'jonesy'
 
@@ -19,9 +20,13 @@ class SetupPyHandler(tornado.web.RequestHandler):
     """
 
     def initialize(self):
-        self.nolist_keys = ['protocol_version',
+        # attributes that are likely to be unique per-package, or unique enough
+        # that storing a 'metadata:<attr>:<val> = [pkg1, pkg2, pkg3...pkgN]'
+        # set would be useless.
+        self.nolist_keys = [
             'md5_digest',
             'long_description',
+            'description',
             'summary',
             ':action',
             'filecontent',
@@ -29,7 +34,10 @@ class SetupPyHandler(tornado.web.RequestHandler):
             'home_page',
             'metadata_version',
             'protcol_version',
+            'protocol_version',
             'filetype',
+            'filename',
+            'version',
             'comment',
             ]
 
@@ -75,33 +83,38 @@ class SetupPyHandler(tornado.web.RequestHandler):
         self.dbstore(args)
 
     def dbstore(self, args):
-        logging.debug("WE'RE INSIDE DBSTORE")
-        # store all the args we got in the main lookup hash for the pkg.
-        logging.debug("REDIS: db.hmset('pkg:%s',  %s)", args['name'], args)
-        db.hmset('pkg:%s' % args['name'], args)
+        """
+        Don't take this function too seriously. It's a prototype while I
+        iterate on the data model. This will all go into core.dao later.
+
+        """
+        p_name = args['name']
+        p_vers = args['version']
+
+        # creates pkg:<name>:<version> set
+        db.store_pkg_data(p_name, p_vers, args)
+
+        # pkg:<name>:all_versions
+        db.add_version_for_pkg(p_name, p_vers)
+
+        if args.get('filetype'):
+            db.add_filetype_for_dist(p_name, p_vers,
+                                     args['filetype'],
+                                     args['filename'])
+
+        for req in args.get('requires', []):
+            db.update_dependency(req, p_name)
 
         # For each k,v in args, make a set
         for arg, val in args.items():
+            if not val:
+                continue
             if arg == 'classifiers':
-                for classifier in val:
-                    logging.debug("Adding classifier '%s' for pkg %s",
-                        classifier,
-                        args['name'])
-                    logging.debug("REDIS: db.sadd(':'.join((%s, %s)), %s )",
-                        arg,
-                        classifier,
-                        args['name'])
-                    db.sadd(':'.join((arg, classifier)), args['name'])
-            else:
-                if arg not in self.nolist_keys:
-                    logging.debug("Adding %s for pkg %s", 'metadata:%s' %
-                         arg,
-                         args['name'])
-                    logging.debug("REDIS: db.sadd('metadata:%s:%s', %s)",
-                                  arg,
-                                  val,
-                                  args['name'])
-                    db.sadd('metadata:%s:%s' % (arg, val), args['name'])
+                db.update_all_classifiers(p_name, val)
+            elif arg == 'requires':
+                db.update_all_dependencies(p_name, val)
+            elif arg not in self.nolist_keys:
+                db.update_pkg_metadata(p_name, arg, val)
         return
 
     def upload(self, req, args):
@@ -113,8 +126,6 @@ class SetupPyHandler(tornado.web.RequestHandler):
             self.application.settings['PackageDirs'][0])
 
         pkgname = args['name']
-        vers = args['version']
-        ftype = args['filetype']
         fname = args['filename']
         fcontent = args['filecontent']
 
@@ -191,7 +202,7 @@ class SetupPyHandler(tornado.web.RequestHandler):
                     v = preval.rstrip('\n--')
                     logging.debug("K, V = %s, %s", k, v)
 
-                    if k == 'classifiers':
+                    if k == 'classifiers' or k == 'requires':
                         if k in args:
                             # there can be >1 of these.
                             args[k].append(v)

@@ -3,7 +3,7 @@
 HTTPServer:
     daemonize: True
     no_keep_alive: True
-    ports: [8080,8081, 8082] 
+    ports: [9090,9091, 9092] 
     xheaders: True
     debug: True
     logdir: 'logs'

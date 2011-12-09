@@ -4,6 +4,7 @@ db = redis.Redis()
 
 PKG_PREFIX = 'pkg'
 PKG_NAME_INDEX = 'pkg:all_names'
+
 class PyPIData(object):
 
     def find_pkg_key_byname(self, pkg):
@@ -70,16 +71,81 @@ class PyPIData(object):
         """
         return self.get_pkg_meta_field(pkg, 'dowload_url', version)
 
-    def store_pkg_metadata(self, pkg, version='latest'):
+    def update_classifier(self, classifier, pkg):
         """
-        Store all metadata for package. Should be called in the
-        'upload' and 'register' setup.py commands, which both
-        pass package metadata.
+        There's a set for each classifier a la:
 
+        classifier:<cls_name> = [<pkg1>, <pkg2>, ...]
+
+        This adds pkg to the classifier set.
+
+        :param str classifier: Trove classifier to add pkg to.
+        :param str pkg: The name of the package.
         """
-        pass
+        db.sadd(':'.join(('classifier', classifier)), pkg.lower())
 
-    def update_pkg_metadata(self, pkg, version, **kwargs):
+    def store_pkg_data(self, pkg, version, alldata):
+        """
+
+        :param str pkg: name of package to store data for
+        :param version:  version of pkg to store data for.
+        :param alldata: the request args containing all data sent w/ upload or
+                register request.
+        :return:
+        """
+        db.hmset('pkg:%s:%s' % (pkg.lower(), version.lower()), alldata)
+
+    def add_version_for_pkg(self, pkg, version):
+        """
+        Add the current version to the list of versions available for a package
+
+        :param str pkg: Name of package
+        :param version: package version
+        :return:
+        """
+        db.sadd('pkg:%s:all_versions' % pkg.lower(), version.lower())
+
+    def update_dependency(self, req, pkg):
+        """
+        For each uploaded package, we get (possibly) a list of dependencies.
+        For each dependency, we track the packages which have this dependency.
+
+        So, 'metadata:requires:pyyaml [Tinman, MinistryOfPackages, ...]'
+
+        The key points to a set containing packages dependent on the pkg in the
+        key.
+
+        :param req:
+        :param pkg:
+        :return:
+        """
+        db.sadd('metadata:requires:%s' % req, pkg.lower())
+
+    def update_all_classifiers(self, pkg, vals):
+        for classifier in vals:
+            self.update_classifier(classifier, pkg)
+
+    def update_all_dependencies(self, pkg, deps):
+        for dep in deps:
+            self.update_dependency(dep, pkg)
+
+    def add_filetype_for_dist(self, pkg, vers, ftype, fname):
+        """
+        Makes it easy to search & see if version x of pkg y has an available
+        tarball, or an rpm, or whatever.
+
+        Ex:
+        pkg:ministryofpackages:0.9.7:tarball [MinistryOfPackages-0.9.7.tar.gz]
+
+        :param pkg:
+        :param vers:
+        :param ftype:
+        :param fname:
+        :return:
+        """
+        db.sadd('pkg:%s:%s:%s' % (pkg.lower(), vers.lower(), ftype), fname)
+
+    def update_pkg_metadata(self, pkg, metafield, metaval):
         """
         Set the metadata fields specified by **kwargs for the record
         indicated by pkg and version. To protect against overwriting unintended
@@ -87,27 +153,5 @@ class PyPIData(object):
         'latest'.
 
         """
-        pass
+        db.sadd('metadata:%s:%s' % (metafield, metaval), pkg.lower())
 
-    def populate_initial_valid_metadata(self):
-        """
-        If we find an empty data store upon startup, we'll populate a
-        redis list containing the metadata fields recognized by distutils.
-
-        """
-        pass
-
-    def populate_initial_valid_classifiers(self):
-        """
-        If we find an empty data store upon startup, we'll populate a list
-        of valid classifiers as published at:
-
-        http://pypi.python.org/pypi?:action=list_classifiers
-
-        I intend to actuall call that url in the setup, so while pypi *does*
-        need to be available to do the initial population, it won't be
-        necessary in a running service. The alternative is to check the url
-        on an ongoing basis, which is clearly worse :)
-
-        """
-        pass
